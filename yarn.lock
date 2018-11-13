@@ -179,7 +179,7 @@ prosemirror-keymap@^1.0.0:
 
 "prosemirror-menu@https://github.com/garmire/prosemirror-menu":
   version "1.0.5"
-  resolved "https://github.com/garmire/prosemirror-menu#e289fa1280da2b9c602c1a1694fbda947d39bf7b"
+  resolved "https://github.com/garmire/prosemirror-menu#5935ea8a8366bb0732006d2e05dcfd60b6c99ce3"
   dependencies:
     crel "^3.0.0"
     prosemirror-commands "^1.0.0"
