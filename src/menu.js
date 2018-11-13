@@ -166,6 +166,8 @@ export function buildMenuItems(schema) {
     r.toggleStrong = markItem(type, {title: "Toggle strong style", icon: icons.strong})
   if (type = schema.marks.em)
     r.toggleEm = markItem(type, {title: "Toggle emphasis", icon: icons.em})
+  if (type = schema.marks.u)
+    r.toggleUnderline = markItem(type, {title: "Toggle underline", icon: icons.u})
   if (type = schema.marks.code)
     r.toggleCode = markItem(type, {title: "Toggle code font", icon: icons.code})
   if (type = schema.marks.link)
@@ -221,7 +223,7 @@ export function buildMenuItems(schema) {
     r.makeHead1, r.makeHead2, r.makeHead3, r.makeHead4, r.makeHead5, r.makeHead6
   ]), {label: "Heading"})]), {label: "Type..."})
 
-  r.inlineMenu = [cut([r.toggleStrong, r.toggleEm, r.toggleCode, r.toggleLink])]
+  r.inlineMenu = [cut([r.toggleStrong, r.toggleEm, r.toggleUnderline, r.toggleCode, r.toggleLink])]
   r.blockMenu = [cut([r.wrapBulletList, r.wrapOrderedList, r.wrapBlockQuote, joinUpItem,
                       liftItem, selectParentNodeItem])]
   r.fullMenu = r.inlineMenu.concat([[r.insertMenu, r.typeMenu]], [[undoItem, redoItem]], r.blockMenu)
