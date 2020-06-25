@@ -4,6 +4,7 @@ import {NodeSelection} from "prosemirror-state"
 import {toggleMark} from "prosemirror-commands"
 import {wrapInList} from "prosemirror-schema-list"
 import {TextField, openPrompt} from "./prompt"
+import {sendMessage} from './message'
 
 // Helpers to create specific types of items
 
@@ -74,7 +75,7 @@ function linkItem(markType) {
     title: "Add or remove link",
     icon: icons.link,
     active(state) { return markActive(state, markType) },
-    enable(state) { return !state.selection.empty },
+    select(state) { return !state.selection.empty },
     run(state, dispatch, view) {
       if (markActive(state, markType)) {
         toggleMark(markType)(state, dispatch)
@@ -160,7 +161,8 @@ function wrapListItem(nodeType, options) {
 // **`fullMenu`**`: [[MenuElement]]`
 //   : An array of arrays of menu elements for use as the full menu
 //     for, for example the [menu bar](https://github.com/prosemirror/prosemirror-menu#user-content-menubar).
-export function buildMenuItems(schema) {
+export function buildMenuItems(schema, options) {
+  let support = options.support || {};
   let r = {}, type
   if (type = schema.marks.strong)
     r.toggleStrong = markItem(type, {title: "Toggle strong style", icon: icons.strong})
@@ -185,6 +187,15 @@ export function buildMenuItems(schema) {
       title: "Wrap in ordered list",
       icon: icons.orderedList
     })
+
+  if (support.todo) {
+    if (type = schema.nodes.todo_list)
+      r.wrapTodoList = wrapListItem(type, {
+        title: "Wrap in todo list",
+        icon: icons.todoList
+      })
+  }
+
   if (type = schema.nodes.blockquote)
     r.wrapBlockQuote = wrapItem(type, {
       title: "Wrap in block quote",
@@ -193,7 +204,8 @@ export function buildMenuItems(schema) {
   if (type = schema.nodes.paragraph)
     r.makeParagraph = blockTypeItem(type, {
       title: "Change to paragraph",
-      label: "Plain"
+      // label: "Plain",
+      icon: icons.paragraph
     })
   if (type = schema.nodes.code_block)
     r.makeCodeBlock = blockTypeItem(type, {
@@ -201,10 +213,11 @@ export function buildMenuItems(schema) {
       label: "Code"
     })
   if (type = schema.nodes.heading)
-    for (let i = 1; i <= 10; i++)
+    for (let i = 1; i <= 3; i++)
       r["makeHead" + i] = blockTypeItem(type, {
         title: "Change to heading " + i,
-        label: "Level " + i,
+        //label: "Level " + i,
+        icon: icons["heading" + i],
         attrs: {level: i}
       })
   if (type = schema.nodes.horizontal_rule) {
@@ -217,16 +230,57 @@ export function buildMenuItems(schema) {
     })
   }
 
-  let cut = arr => arr.filter(x => x)
-  r.insertMenu = new Dropdown(cut([r.insertImage, r.insertHorizontalRule]), {label: "Insert"})
-  r.typeMenu = new Dropdown(cut([r.makeParagraph, r.makeCodeBlock, r.makeHead1 && new DropdownSubmenu(cut([
-    r.makeHead1, r.makeHead2, r.makeHead3, r.makeHead4, r.makeHead5, r.makeHead6
-  ]), {label: "Heading"})]), {label: "Type..."})
+  if (support.attach) {
+    r.attach = new MenuItem({
+      title: "Attach",
+      icon: icons.attach,
+      //enable(state) { return true },
+      run(state, dispatch, view) {
+        sendMessage({
+          type: 'attach',
+        })
+      }
+    });
+  }
 
-  r.inlineMenu = [cut([r.toggleStrong, r.toggleEm, r.toggleUnderline, r.toggleCode, r.toggleLink])]
-  r.blockMenu = [cut([r.wrapBulletList, r.wrapOrderedList, r.wrapBlockQuote, joinUpItem,
-                      liftItem, selectParentNodeItem])]
-  r.fullMenu = r.inlineMenu.concat([[r.insertMenu, r.typeMenu]], [[undoItem, redoItem]], r.blockMenu)
+  if (support.share) {
+    r.share = new MenuItem({
+      title: "Share",
+      icon: icons.share,
+      //enable(state) { return true },
+      // select(state) {
+      //   return !state.selection.empty
+      // },
+      run(state, dispatch, view) {
+        sendMessage({
+          type: 'share',
+        })
+      }
+    });
+  }
+
+  // r.exitItem = new MenuItem({
+  //   title: "Exit",
+  //   //label: "Exit",
+  //   icon: icons.exit,
+  //   //enable(state) { return true },
+  //   run(state, dispatch, view) { view.dom.blur() }
+  // })
+
+  let cut = arr => arr.filter(x => x)
+  // r.insertMenu = new Dropdown(cut([r.insertImage, r.insertHorizontalRule]), {label: "Insert"})
+  // r.typeMenu = new Dropdown(cut([r.makeParagraph, r.makeCodeBlock, r.makeHead1 && new DropdownSubmenu(cut([
+  //   r.makeHead1, r.makeHead2, r.makeHead3
+  // ]), {label: "Heading"})]), {label: "Type..."})
+
+  //r.inlineMenu = [cut([r.toggleStrong, r.toggleEm, r.toggleUnderline, r.toggleCode, r.toggleLink])]
+  r.inlineMenu = [cut([r.toggleStrong, r.toggleEm, r.toggleUnderline, r.toggleLink])]
+  r.styleMenu = [cut([r.makeHead1, r.makeHead2, r.makeHead3, r.makeParagraph])]
+  // r.blockMenu = [cut([r.wrapBulletList, r.wrapOrderedList, r.wrapBlockQuote, joinUpItem, liftItem, selectParentNodeItem])]
+  r.blockMenu = [cut([r.wrapBulletList, r.wrapOrderedList, r.wrapTodoList, liftItem])]
+  r.messageMenu = [cut([r.attach, r.share])]
+  //r.fullMenu = r.inlineMenu.concat(r.styleMenu, [[r.insertMenu, r.typeMenu]], [[undoItem, redoItem]], r.blockMenu)
+  r.fullMenu = r.inlineMenu.concat(r.styleMenu, r.blockMenu, r.messageMenu, [[undoItem, redoItem]])
 
   return r
 }

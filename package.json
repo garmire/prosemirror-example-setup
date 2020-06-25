@@ -23,7 +23,7 @@
     "prosemirror-history": "^1.0.0",
     "prosemirror-commands": "^1.0.0",
     "prosemirror-state": "^1.0.0",
-    "prosemirror-menu": "https://github.com/garmire/prosemirror-menu",
+    "prosemirror-menu": "*",
     "prosemirror-dropcursor": "^1.0.0",
     "prosemirror-gapcursor": "^1.0.0"
   },

@@ -3,6 +3,8 @@ import {wrapIn, setBlockType, chainCommands, toggleMark, exitCode,
 import {wrapInList, splitListItem, liftListItem, sinkListItem} from "prosemirror-schema-list"
 import {undo, redo} from "prosemirror-history"
 import {undoInputRule} from "prosemirror-inputrules"
+import {sendMessage} from './message'
+import {isMention} from './mention'
 
 const mac = typeof navigator != "undefined" ? /Mac/.test(navigator.platform) : false
 
@@ -56,6 +58,14 @@ export function buildKeymap(schema, mapKeys) {
   bind("Mod-BracketLeft", lift)
   bind("Escape", selectParentNode)
 
+  bind("@", (state, dispatch) => {
+    if (isMention(state)) {
+      sendMessage({
+        type: 'mention',
+      })
+    }
+  })
+
   if (type = schema.marks.strong)
     bind("Mod-b", toggleMark(type))
   if (type = schema.marks.em)
@@ -98,4 +108,16 @@ export function buildKeymap(schema, mapKeys) {
   }
 
   return keys
+}
+
+export function buildTodosKeymap(schema) {
+  let keys = {}, type
+  if (type = schema.nodes.todo_item) {
+    keys = {
+      'Enter': splitListItem(type),
+      // 'Tab': sinkListItem(schema.nodes.todo_item), // use this if you want to nest todos
+      'Shift-Tab': liftListItem(type)
+    };
+  }
+  return keys;
 }

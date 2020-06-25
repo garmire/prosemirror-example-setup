@@ -7,7 +7,7 @@ import {gapCursor} from "prosemirror-gapcursor"
 import {menuBar} from "prosemirror-menu"
 
 import {buildMenuItems} from "./menu"
-import {buildKeymap} from "./keymap"
+import {buildKeymap, buildTodosKeymap} from "./keymap"
 import {buildInputRules} from "./inputrules"
 
 export {buildMenuItems, buildKeymap, buildInputRules}
@@ -51,6 +51,7 @@ export {buildMenuItems, buildKeymap, buildInputRules}
 export function exampleSetup(options) {
   let plugins = [
     buildInputRules(options.schema),
+    keymap(buildTodosKeymap(options.schema)),
     keymap(buildKeymap(options.schema, options.mapKeys)),
     keymap(baseKeymap),
     dropCursor(),
@@ -58,7 +59,7 @@ export function exampleSetup(options) {
   ]
   if (options.menuBar !== false)
     plugins.push(menuBar({floating: options.floatingMenu !== false,
-                          content: options.menuContent || buildMenuItems(options.schema).fullMenu}))
+                          content: options.menuContent || buildMenuItems(options.schema, options).fullMenu}))
   if (options.history !== false)
     plugins.push(history())
 
